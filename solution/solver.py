@@ -4,6 +4,10 @@ import math
 MAX_ITERATIONS = 100
 
 def solve(data):
+
+    if is_improper_integral(data[0], data[2]):
+        solve_improper_integral(data)
+
     if data[1] == "Метод левых прямоугольников": return left_rectangles_solution(data)
     elif data[1] == "Метод правых прямоугольников": return right_rectangles_solution(data)
     elif data[1] == "Метод средних прямоугольников": return mid_rectangles_solution(data)
@@ -17,9 +21,6 @@ def solve(data):
 
 def runge(I, I_previous, k):
     return (I_previous - I)/(2**k - 1)
-
-
-
 
 
 def parse_interval(interval_str):
@@ -51,7 +52,6 @@ def left_rectangles_solution(data):
     I_previous = 1000
 
     while True:
-        print(iterations)
         if iterations > MAX_ITERATIONS:
             return "Превышено максмальное время ожидания"
         h = (b-a) / n
@@ -247,9 +247,9 @@ def solve(data):
 def is_improper_integral(equation, interval):
     a, b = parse_interval(interval)
 
-    if equation == "1/x" and a < 0 < b:
+    if equation == "1/x":
         return True
-    if equation == "1/sqrt(x)" and a == 0:
+    if equation == "1/x^(1/2)":
         return True
     if equation == "1/x^2":
         return True
@@ -263,28 +263,30 @@ def solve_improper_integral(data):
     print(equation)
     if equation == "1/x" and a < 0 < b:
         if a < 0 < b:
-            return solve_integral_with_discontinuity(data, a, -0.001, eps) + solve_integral_with_discontinuity(data, 0.001, b, eps)
+            return solve_integral_with_discontinuity(data, a, -0.0001, eps) + solve_integral_with_discontinuity(data, 0.001, b, eps)
         elif a == 0:
-            return solve_integral_with_discontinuity(data, 0.001, b, eps)
+            return solve_integral_with_discontinuity(data, 0.0001, b, eps)
         elif b==0:
-            return solve_integral_with_discontinuity(data, a, -0.001, eps)
+            return solve_integral_with_discontinuity(data, a, -0.0001, eps)
 
         else:
             return solve_integral_with_discontinuity(data, a, b, eps)
 
-    elif equation == "1/sqrt(x)" :
+    elif equation == "1/x^(1/2)" :
         if a == 0 or a < 0:
+            print(a)
             return solve_integral_with_discontinuity(data, 0.001, b, eps)
-
+        else:
+            print('meow')
 
     elif equation == "1/x^2" :
         print("гав")
         if a < 0 < b:
-            return solve_integral_with_discontinuity(data, a, -0.001, eps) + solve_integral_with_discontinuity(data, 0.001, b, eps)
+            return solve_integral_with_discontinuity(data, a, -0.0001, eps) + solve_integral_with_discontinuity(data, 0.001, b, eps)
         elif a == 0 :
-            return solve_integral_with_discontinuity(data, 0.001, b, eps)
+            return solve_integral_with_discontinuity(data, 0.0001, b, eps)
         elif b == 0:
-            return solve_integral_with_discontinuity(data, a, -0.001, eps)
+            return solve_integral_with_discontinuity(data, a, -0.0001, eps)
         else:
             return solve_integral_with_discontinuity(data, a, b, eps)
 
@@ -292,7 +294,6 @@ def solve_improper_integral(data):
 
 
 def solve_integral_with_discontinuity(data, a, b, eps):
-    equation,precision = data[0], data[3]
     datalist = []
     datalist.append(data[0])
     datalist.append(data[1])

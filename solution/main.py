@@ -32,7 +32,7 @@ def process_console_solution():
                 "x^3 - 2 * x^2 - 2 * x + 2",
                 "1/x",
                 "1/x^(1/2)",
-                "1/x^2"
+                "1/x^3"
                 ]
             print("Выберите уравнение:")
             for i, eq in enumerate(equations, 1):

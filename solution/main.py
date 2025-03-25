@@ -15,7 +15,7 @@ def console_input():
 
             if command == "exit":
                 print("Выход из программы...")
-                return
+                exit(0)
             elif command == "solve":
                 process_console_solution()
         except Exception as e:
@@ -31,8 +31,8 @@ def process_console_solution():
                 "cos(x) - x * sin(x)",
                 "x^3 - 2 * x^2 - 2 * x + 2",
                 "1/x",
-                "1/x^(1/2)",
-                "1/x^3"
+                "1/x^2",
+                "4/(3 - x)"
                 ]
             print("Выберите уравнение:")
             for i, eq in enumerate(equations, 1):
@@ -52,8 +52,9 @@ def process_console_solution():
             precision = get_valid_input("Введите точность (например, 0,001): ", validate_precision)
 
             data = eq_choice, method_choice, interval, precision
-
-            output(solver.solve(data))
+            result = solver.solve(data)
+            if result != None:
+                output(result)
             break
         except Exception as e:
             print(f"Ошибка: {e}. Попробуйте снова.")

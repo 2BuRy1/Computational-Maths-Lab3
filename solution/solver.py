@@ -1,7 +1,21 @@
-import math
 
 
 MAX_ITERATIONS = 100
+
+
+breaking_points = {
+    "1/x" : 0,
+    "1/x^2" : 0,
+    "4/(3 - x)": 3
+
+}
+
+
+def is_breaking_point(equasion , a, b):
+    breaking_point = breaking_points[equasion]
+    if a == breaking_point or b == breaking_point:
+        return True
+    return False
 
 def solve(data):
 
@@ -30,15 +44,16 @@ def parse_interval(interval_str):
     except ValueError:
         raise ValueError("Некорректный формат интервала. Введите два числа через точку с запятой.")
 
+def make_data_for_solution(data):
+    return data[0] , parse_interval(data[2]), float(data[3].replace(",", "."))
+
+
 
 def left_rectangles_solution(data):
-    equation, interval, precision = data[0], data[2], data[3]
-    a, b = parse_interval(interval)
-    eps = float(precision.replace(",", "."))
+    equation ,interval, eps = make_data_for_solution(data)
+    a , b = interval[0], interval[1]
     n = 4
-    print(a, b)
     equation = equation.strip().replace("^", "**")
-
     f = lambda x: eval(equation,
                        {"x": x, "sin": math.sin,
                         "cos": math.cos,
@@ -50,7 +65,6 @@ def left_rectangles_solution(data):
 
     iterations = 0
     I_previous = 1000
-
     while True:
         if iterations > MAX_ITERATIONS:
             return "Превышено максмальное время ожидания"
@@ -72,9 +86,8 @@ def left_rectangles_solution(data):
 
 
 def right_rectangles_solution(data):
-    equation, interval, precision = data[0], data[2], data[3]
-    a, b = parse_interval(interval)
-    eps = float(precision.replace(",", "."))
+    equation, interval, eps = make_data_for_solution(data)
+    a, b = interval[0], interval[1]
     n = 4
 
     equation = equation.strip().replace("^", "**")
@@ -109,9 +122,8 @@ def right_rectangles_solution(data):
 
 
 def mid_rectangles_solution(data):
-    equation, interval, precision = data[0], data[2], data[3]
-    a, b = parse_interval(interval)
-    eps = float(precision.replace(",", "."))
+    equation, interval, eps = make_data_for_solution(data)
+    a, b = interval[0], interval[1]
     n = 4
 
     equation = equation.strip().replace("^", "**")
@@ -146,9 +158,8 @@ def mid_rectangles_solution(data):
 
 
 def trapec_solution(data):
-    equation, interval, precision = data[0], data[2], data[3]
-    a, b = parse_interval(interval)
-    eps = float(precision.replace(",", "."))
+    equation, interval, eps = make_data_for_solution(data)
+    a, b = interval[0], interval[1]
     n = 4
 
     equation = equation.strip().replace("^", "**")
@@ -182,9 +193,8 @@ def trapec_solution(data):
 
 
 def simpson_solution(data):
-    equation, interval, precision = data[0], data[2], data[3]
-    a, b = parse_interval(interval)
-    eps = float(precision.replace(",", "."))
+    equation, interval, eps = make_data_for_solution(data)
+    a, b = interval[0], interval[1]
     n = 4
     MAX_ITERATIONS = 1000
 
@@ -207,8 +217,12 @@ def simpson_solution(data):
         x_values = [a + h * i for i in range(n)]
         f_values = [f(i) for i in x_values]
 
-        I = h / 3 * (f_values[0] + 4 * sum(f_values[i] for i in range(1, n, 2)) + 2 * sum(f_values[i] for i in range(2, n - 1, 2)) + f_values[-1])
-
+        I = h / 3 * (
+                f_values[0] +
+                4 * sum(f_values[1::2]) +
+                2 * sum(f_values[2::2]) +
+                f_values[-1]
+        )
         if abs(runge(I, I_previous, 4)) < eps:
             break
 
@@ -249,7 +263,7 @@ def is_improper_integral(equation, interval):
 
     if equation == "1/x":
         return True
-    if equation == "1/x^(1/2)":
+    if equation == "4/(3 - x)":
         return True
     if equation == "1/x^2":
         return True
@@ -260,37 +274,55 @@ def solve_improper_integral(data):
     equation, interval, precision = data[0], data[2], data[3]
     a, b = parse_interval(interval)
     eps = float(precision.replace(",", "."))
-    print(equation)
-    if equation == "1/x" and a < 0 < b:
-        if a < 0 < b:
-            return solve_integral_with_discontinuity(data, a, -0.0001, eps) + solve_integral_with_discontinuity(data, 0.001, b, eps)
-        elif a == 0:
-            return solve_integral_with_discontinuity(data, 0.0001, b, eps)
-        elif b==0:
-            return solve_integral_with_discontinuity(data, a, -0.0001, eps)
 
+    if is_breaking_point(equation, a, b):
+        print("Не можем решить интеграл с пределом в точке разрыва")
+        return None
+
+
+    if equation == "1/x":
+        if a < 0 < b:
+            returnList = []
+            firstIntegral = solve_integral_with_discontinuity(data, a, -1, eps)
+            secondIntegral = solve_integral_with_discontinuity(data, 1 ,b , eps)
+            print(firstIntegral[1], secondIntegral[1])
+            returnList.append(max(firstIntegral[0], secondIntegral[0]))
+            returnList.append(firstIntegral[1] + secondIntegral[1])
+            returnList.append(max(firstIntegral[2] , secondIntegral[2]))
+            return returnList
         else:
             return solve_integral_with_discontinuity(data, a, b, eps)
 
-    elif equation == "1/x^(1/2)" :
-        if a == 0 or a < 0:
-            print(a)
-            return solve_integral_with_discontinuity(data, 0.001, b, eps)
-        else:
-            print('meow')
+
+
 
     elif equation == "1/x^2" :
-        print("гав")
+
         if a < 0 < b:
-            return solve_integral_with_discontinuity(data, a, -0.0001, eps) + solve_integral_with_discontinuity(data, 0.001, b, eps)
-        elif a == 0 :
-            return solve_integral_with_discontinuity(data, 0.0001, b, eps)
-        elif b == 0:
-            return solve_integral_with_discontinuity(data, a, -0.0001, eps)
+            returnList = []
+            firstIntegral = solve_integral_with_discontinuity(data, a, -0.001, eps)
+            secondIntegral = solve_integral_with_discontinuity(data, 0.001,b , eps)
+            returnList.append(max(firstIntegral[0], secondIntegral[0]))
+            returnList.append(firstIntegral[1] + secondIntegral[1])
+            returnList.append(max(firstIntegral[2], secondIntegral[2]))
+            return returnList
         else:
             return solve_integral_with_discontinuity(data, a, b, eps)
+    elif equation == "4/(3 - x)":
 
+        if a < 3 < b:
+            returnList = []
+            firstIntegral = solve_integral_with_discontinuity(data, a, 2.5, eps)
+            secondIntegral = solve_integral_with_discontinuity(data, 3.5, b, eps)
+            returnList.append(max(firstIntegral[0], secondIntegral[0]))
+            returnList.append(firstIntegral[1] + secondIntegral[1])
+            returnList.append(max(firstIntegral[2], secondIntegral[2]))
+            return returnList
+
+        else:
+            return solve_integral_with_discontinuity(data, a, b, eps)
     return "Интеграл не поддерживается"
+
 
 
 def solve_integral_with_discontinuity(data, a, b, eps):
